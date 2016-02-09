@@ -267,6 +267,11 @@ class FullyConnectedNet(object):
           fp_outputs['L' + str(i+1)] = affine_bnorm_relu_forward(input, gamma, beta, bn_param, thisW, thisB)
         else:
           fp_outputs['L' + str(i+1)] = affine_relu_forward(input, thisW, thisB)
+        if self.use_dropout:
+            out, initial_cache = fp_outputs['L' + str(i+1)]
+            out, dropout_cache = dropout_forward(out, self.dropout_param)
+            fp_outputs['L' + str(i+1)] = (out, initial_cache, dropout_cache)
+
         input = fp_outputs['L' + str(i+1)][0]
     # For the layer L affine unit
     thisW = self.params['W' + str(self.num_layers)]
@@ -307,6 +312,10 @@ class FullyConnectedNet(object):
         if i == self.num_layers:
             dout, grads[thisW], grads[thisB] = affine_backward(dout, fp_outputs['L' + str(i)][1])
         else:
+            if self.use_dropout:
+                out, initial_cache, dropout_cache = fp_outputs['L' + str(i)]
+                dout = dropout_backward(dout, dropout_cache)
+                fp_outputs['L' + str(i)] = (out, initial_cache)
             if self.use_batchnorm:
                 dout, grads[thisW], grads[thisB], grads['gamma' + str(i)], grads['beta' + str(i)] = affine_bnorm_relu_backward(dout, fp_outputs['L' + str(i)][1])
             else:
