@@ -1,19 +1,7 @@
 from cs231n.layers import *
 from cs231n.fast_layers import *
 
-def affine_bnorm_relu_forward(x, gamma, beta, bn_param, w, b):
-  a1, fc_cache = affine_forward(x,w,b)
-  a2, bnorm_cache = batchnorm_forward(a1, gamma, beta, bn_param)
-  out, relu_cache = relu_forward(a2)
-  cache = (fc_cache, bnorm_cache, relu_cache)
-  return out, cache
 
-def affine_bnorm_relu_backward(dout, cache):
-  fc_cache, bnorm_cache, relu_cache = cache
-  da1 = relu_backward(dout, relu_cache)
-  dx1, dgamma, dbeta = batchnorm_backward(dout, cache)
-  dx, dw, db = affine_backward(dx1, fc_cache)
-  return dx, dw, db, dgamma, dbeta
 
 def affine_relu_forward(x, w, b):
   """
