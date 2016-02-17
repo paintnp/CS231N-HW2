@@ -585,7 +585,9 @@ def spatial_batchnorm_forward(x, gamma, beta, bn_param):
   cache = []
   for c in range(C):
       all_channel_data = x[:,c,:,:]
-      out_c, cache_c = batchnorm_forward(all_channel_data.reshape((N,-1)),gamma[c], beta[c], bn_param)
+      all_channel_data_reshaped = all_channel_data.reshape(-1)
+      all_channel_data_reshaped = all_channel_data_reshaped.reshape((all_channel_data_reshaped.size, 1))
+      out_c, cache_c = batchnorm_forward(all_channel_data_reshaped,gamma[c], beta[c], bn_param)
       out[:,c,:,:] = out_c.reshape((N,H,W))
       cache.append(cache_c)
 
@@ -619,6 +621,17 @@ def spatial_batchnorm_backward(dout, cache):
   - dbeta: Gradient with respect to shift parameter, of shape (C,)
   """
   dx, dgamma, dbeta = None, None, None
+  N,C,H,W = dout.shape
+  dx = np.zeros((N,C,H,W))
+  dgamma = np.zeros(C)
+  dbeta = np.zeros(C)
+  for c in range(C):
+      dout_c = dout[:,c,:,:]
+      dout_c = dout_c.reshape((N*H*W,1))
+      dx_c, dgamma_c, dbeta_c = batchnorm_backward(dout_c, cache[c])
+      dx[:,c,:,:] = dx_c.reshape((N,H,W))
+      dgamma[c] = dgamma_c[0]
+      dbeta[c] = dbeta_c[0]
 
   #############################################################################
   # TODO: Implement the backward pass for spatial batch normalization.        #
