@@ -580,6 +580,15 @@ def spatial_batchnorm_forward(x, gamma, beta, bn_param):
   - cache: Values needed for the backward pass
   """
   out, cache = None, None
+  N,C,H,W = x.shape
+  out = np.zeros((N,C,H,W))
+  cache = []
+  for c in range(C):
+      all_channel_data = x[:,c,:,:]
+      out_c, cache_c = batchnorm_forward(all_channel_data.reshape((N,-1)),gamma[c], beta[c], bn_param)
+      out[:,c,:,:] = out_c.reshape((N,H,W))
+      cache.append(cache_c)
+
 
   #############################################################################
   # TODO: Implement the forward pass for spatial batch normalization.         #
